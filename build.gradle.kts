@@ -3,7 +3,6 @@
 import org.jetbrains.kotlin.gradle.dsl.KotlinJvmOptions
 import org.jetbrains.kotlin.gradle.plugin.KotlinTarget
 import org.jetbrains.kotlin.gradle.plugin.mpp.KotlinNativeTarget
-import org.gradle.api.publish.maven.MavenPublication
 import java.util.*
 
 repositories {
@@ -14,8 +13,8 @@ repositories {
 plugins {
     id("maven-publish")
     id("signing")
-    id("com.android.library") version "7.2.1"
-    kotlin("multiplatform") version "1.7.10"
+//    id("com.android.library") version "7.2.1"
+    kotlin("multiplatform") version "1.7.20-Beta"
 }
 
 group = "io.maryk.rocksdb"
@@ -43,17 +42,17 @@ val buildIOSSimulator by tasks.creating(Exec::class) {
     workingDir = projectDir
     commandLine("./buildObjectiveRocksiOS.sh", "iphonesimulator")
 }
-
-android {
-    buildToolsVersion = "32.0.0"
-    compileSdk = 32
-    defaultConfig {
-        minSdk = 21
-        targetSdk = 32
-        multiDexEnabled = true
-        testInstrumentationRunner = "android.support.test.runner.AndroidJUnitRunner"
-    }
-}
+//
+//android {
+//    buildToolsVersion = "32.0.0"
+//    compileSdk = 32
+//    defaultConfig {
+//        minSdk = 21
+//        targetSdk = 32
+//        multiDexEnabled = true
+//        testInstrumentationRunner = "android.support.test.runner.AndroidJUnitRunner"
+//    }
+//}
 
 kotlin {
     fun KotlinTarget.setupJvmTarget() {
@@ -66,14 +65,14 @@ kotlin {
             }
         }
     }
-    jvm {
-        setupJvmTarget()
-    }
-    android {
-        setupJvmTarget()
-        publishAllLibraryVariants()
-        publishLibraryVariantsGroupedByFlavor = true
-    }
+//    jvm {
+//        setupJvmTarget()
+//    }
+//    android {
+//        setupJvmTarget()
+//        publishAllLibraryVariants()
+//        publishLibraryVariantsGroupedByFlavor = true
+//    }
 
     sourceSets {
         all {
@@ -90,23 +89,23 @@ kotlin {
                 implementation(kotlin("test-annotations-common"))
             }
         }
-        val jvmMain by getting {
-            dependencies {
-                api("org.rocksdb:rocksdbjni:$rocksDBJVMVersion")
-            }
-        }
-        val jvmTest by getting {
-            dependencies {
-                implementation(kotlin("test"))
-                implementation(kotlin("test-junit"))
-            }
-        }
-        val androidMain by getting {
-            dependencies {
-                implementation(kotlin("stdlib"))
-                api("io.maryk.rocksdb:rocksdb-android:$rocksDBAndroidVersion")
-            }
-        }
+//        val jvmMain by getting {
+//            dependencies {
+//                api("org.rocksdb:rocksdbjni:$rocksDBJVMVersion")
+//            }
+//        }
+//        val jvmTest by getting {
+//            dependencies {
+//                implementation(kotlin("test"))
+//                implementation(kotlin("test-junit"))
+//            }
+//        }
+//        val androidMain by getting {
+//            dependencies {
+//                implementation(kotlin("stdlib"))
+//                api("io.maryk.rocksdb:rocksdb-android:$rocksDBAndroidVersion")
+//            }
+//        }
         val nativeMain by creating {
             dependsOn(commonMain)
         }
@@ -156,18 +155,18 @@ kotlin {
         }
     }
 
-    ios {
-        if (this.name == "iosX64") {
-            setupAppleTarget("iOS", buildIOSSimulator, "-iphonesimulator")
-        } else {
-            setupAppleTarget("iOS", buildIOS, "-iphoneos")
-        }
-    }
-
-    macosX64 {
-        setupAppleTarget("macOS", buildMacOS)
-    }
-
+//    ios {
+//        if (this.name == "iosX64") {
+//            setupAppleTarget("iOS", buildIOSSimulator, "-iphonesimulator")
+//        } else {
+//            setupAppleTarget("iOS", buildIOS, "-iphoneos")
+//        }
+//    }
+//
+//    macosX64 {
+//        setupAppleTarget("macOS", buildMacOS)
+//    }
+//
     macosArm64 {
         setupAppleTarget("macOS", buildMacOS)
     }

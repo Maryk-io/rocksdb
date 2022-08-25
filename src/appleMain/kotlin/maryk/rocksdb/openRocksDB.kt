@@ -1,28 +1,32 @@
 package maryk.rocksdb
 
-import maryk.wrapWithNullErrorThrower
-import rocksdb.RocksDBColumnFamilyDescriptor
-import rocksdb.RocksDBColumnFamilyHandle
-import rocksdb.RocksDBColumnFamilyOptions
-import rocksdb.RocksDBOptions
-import rocksdb.columnFamilies
-import rocksdb.createIfMissing
+import cnames.structs.rocksdb_column_family_handle_t
+import cnames.structs.rocksdb_options_t
+import kotlinx.cinterop.ByteVar
+import kotlinx.cinterop.CPointerVar
+import kotlinx.cinterop.allocArray
+import kotlinx.cinterop.get
+import kotlinx.cinterop.memScoped
+import kotlinx.cinterop.set
+import kotlinx.cinterop.toCStringArray
+import kotlinx.cinterop.toCValues
+import maryk.wrapWithNullErrorThrower2
+import rocksdb.rocksdb_open
+import rocksdb.rocksdb_open_column_families
+import rocksdb.rocksdb_open_for_read_only
+import rocksdb.rocksdb_open_for_read_only_column_families
 
 actual fun openRocksDB(path: String): RocksDB {
-    return Unit.wrapWithNullErrorThrower { error ->
-        rocksdb.RocksDB.databaseAtPath(
-            path,
-            RocksDBOptions().apply {
-                createIfMissing = true
-            },
-            error
-        )?.let { RocksDB(it) }
-    } ?: throw RocksDBException("No Database could be opened at $path")
+    return Options().use { options ->
+        options.setCreateIfMissing(true)
+
+        openRocksDB(options, path)
+    }
 }
 
 actual fun openRocksDB(options: Options, path: String): RocksDB {
-    return Unit.wrapWithNullErrorThrower { error ->
-        rocksdb.RocksDB.databaseAtPath(path, options.native, error)?.let { RocksDB(it) }
+    return Unit.wrapWithNullErrorThrower2 { error ->
+        rocksdb_open(options.native, path, error)?.let(::RocksDB)
     } ?: throw RocksDBException("No Database could be opened at $path")
 }
 
@@ -30,49 +34,55 @@ actual fun openRocksDB(
     path: String,
     columnFamilyDescriptors: List<ColumnFamilyDescriptor>,
     columnFamilyHandles: MutableList<ColumnFamilyHandle>
-): RocksDB {
-    val descriptors = createRocksDBColumnFamilyDescriptor(columnFamilyDescriptors)
-
-    return Unit.wrapWithNullErrorThrower { error ->
-        rocksdb.RocksDB.databaseAtPath(path, descriptors, RocksDBOptions(), error)?.let {
-            RocksDB(it)
-        }?.also { db ->
-            convertAndAddColumnFamilyHandles(db, columnFamilyHandles)
-        }
-    } ?: throw RocksDBException("No Database could be opened at $path with given descriptors and handles for column families")
-}
+): RocksDB =
+    DBOptions().use {
+        openRocksDB(it, path, columnFamilyDescriptors, columnFamilyHandles)
+    }
 
 actual fun openRocksDB(
     options: DBOptions,
     path: String,
     columnFamilyDescriptors: List<ColumnFamilyDescriptor>,
     columnFamilyHandles: MutableList<ColumnFamilyHandle>
-): RocksDB {
-    val descriptors = createRocksDBColumnFamilyDescriptor(columnFamilyDescriptors)
+): RocksDB =
+    Unit.wrapWithNullErrorThrower2 { error ->
+        ColumnFamilyOptions().use { columnFamilyOptions ->
+            memScoped {
+                val optionsArray = allocArray<CPointerVar<rocksdb_options_t>>(columnFamilyDescriptors.size)
+                val namesArray = allocArray<CPointerVar<ByteVar>>(columnFamilyDescriptors.size)
 
-    return Unit.wrapWithNullErrorThrower { error ->
-        rocksdb.RocksDB.databaseAtPath(
-            path,
-            descriptors,
-            RocksDBOptions(options.native, RocksDBColumnFamilyOptions()),
-            error
-        )?.let {
-            RocksDB(it)
-        }?.also { db ->
-            convertAndAddColumnFamilyHandles(db, columnFamilyHandles)
+                columnFamilyDescriptors.forEachIndexed { index, it ->
+                    namesArray[index] = it.getName().toCValues().ptr
+                    optionsArray[index] = columnFamilyOptions.native
+                }
+
+                val handles = allocArray<CPointerVar<rocksdb_column_family_handle_t>>(columnFamilyDescriptors.size)
+
+                rocksdb_open_column_families(
+                    options.native,
+                    path,
+                    columnFamilyDescriptors.size,
+                    namesArray,
+                    optionsArray,
+                    handles,
+                    error,
+                )?.let(::RocksDB).also {
+                    for (i in columnFamilyDescriptors.indices) {
+                        columnFamilyHandles += ColumnFamilyHandle(handles[i]!!)
+                    }
+                }
+            }
         }
     } ?: throw RocksDBException("No Database could be opened at $path with given descriptors and handles for column families")
-}
 
-actual fun openReadOnlyRocksDB(path: String) = Unit.wrapWithNullErrorThrower { error ->
-    rocksdb.RocksDB.databaseForReadOnlyAtPath(path, RocksDBOptions(), error)?.let {
-        RocksDB(it)
+actual fun openReadOnlyRocksDB(path: String): RocksDB =
+    Options().use {
+        openReadOnlyRocksDB(it, path)
     }
-} ?: throw RocksDBException("No Database could be opened at $path")
 
-actual fun openReadOnlyRocksDB(options: Options, path: String) = Unit.wrapWithNullErrorThrower { error ->
-    rocksdb.RocksDB.databaseForReadOnlyAtPath(path, options.native, error)?.let {
-        RocksDB(it)
+actual fun openReadOnlyRocksDB(options: Options, path: String): RocksDB = Unit.wrapWithNullErrorThrower2 { error ->
+    Options().use {
+        rocksdb_open_for_read_only(options.native, path, 0, error)?.let(::RocksDB)
     }
 } ?: throw RocksDBException("No Database could be opened at $path")
 
@@ -80,55 +90,46 @@ actual fun openReadOnlyRocksDB(
     path: String,
     columnFamilyDescriptors: List<ColumnFamilyDescriptor>,
     columnFamilyHandles: MutableList<ColumnFamilyHandle>
-): RocksDB {
-    val descriptors = createRocksDBColumnFamilyDescriptor(columnFamilyDescriptors)
-
-    return Unit.wrapWithNullErrorThrower { error ->
-        rocksdb.RocksDB.databaseForReadOnlyAtPath(path, descriptors, RocksDBOptions(), error)?.let {
-            RocksDB(it)
-        }?.also { db ->
-            convertAndAddColumnFamilyHandles(db, columnFamilyHandles)
-        }
-    } ?: throw RocksDBException("No Database could be opened at $path")
-}
+): RocksDB =
+    DBOptions().use {
+        openReadOnlyRocksDB(it, path, columnFamilyDescriptors, columnFamilyHandles)
+    }
 
 actual fun openReadOnlyRocksDB(
     options: DBOptions,
     path: String,
     columnFamilyDescriptors: List<ColumnFamilyDescriptor>,
     columnFamilyHandles: MutableList<ColumnFamilyHandle>
-): RocksDB {
-    val descriptors = createRocksDBColumnFamilyDescriptor(columnFamilyDescriptors)
+): RocksDB =
+    memScoped {
+        Unit.wrapWithNullErrorThrower2 { error ->
+            memScoped {
+                ColumnFamilyOptions().use { columnFamilyOptions ->
+                    val columnFamilyOptionsArray = allocArray<CPointerVar<rocksdb_options_t>>(columnFamilyDescriptors.size)
 
-    return Unit.wrapWithNullErrorThrower { error ->
-        rocksdb.RocksDB.databaseAtPath(
-            path,
-            descriptors,
-            RocksDBOptions(options.native, RocksDBColumnFamilyOptions()),
-            error
-        )?.let {
-            RocksDB(it)
-        }?.also { db ->
-            convertAndAddColumnFamilyHandles(db, columnFamilyHandles)
-        }
-    } ?: throw RocksDBException("No Database could be opened at $path")
-}
+                    columnFamilyDescriptors.forEachIndexed { index, _ ->
+                        columnFamilyOptionsArray[index] = columnFamilyOptions.native
+                    }
+                    memScoped {
+                        val handles = allocArray<CPointerVar<rocksdb_column_family_handle_t>>(columnFamilyDescriptors.size)
+                        rocksdb_open_for_read_only_column_families(
+                            options.native,
+                            path,
+                            columnFamilyDescriptors.size,
+                            columnFamilyDescriptors.map { it.getName().decodeToString() }.toCStringArray(this),
+                            columnFamilyOptionsArray,
+                            handles,
+                            0,
+                            error,
+                        )?.let(::RocksDB).also {
+                            for (i in columnFamilyDescriptors.indices) {
+                                columnFamilyHandles += ColumnFamilyHandle(handles[i]!!)
+                            }
+                        } ?: throw NotImplementedError("§§§")
+                    }
+                }
+            }
 
-private fun convertAndAddColumnFamilyHandles(
-    db: RocksDB,
-    columnFamilyHandles: MutableList<ColumnFamilyHandle>
-) {
-    @Suppress("UNCHECKED_CAST")
-    for (handle in (db.native.columnFamilies() as List<RocksDBColumnFamilyHandle>)) {
-        val cfHandle = ColumnFamilyHandle(handle)
-        columnFamilyHandles.add(cfHandle)
+
+        } ?: throw RocksDBException("No Database could be opened at $path with given descriptors and handles for column families")
     }
-}
-
-private fun createRocksDBColumnFamilyDescriptor(columnFamilyDescriptors: List<ColumnFamilyDescriptor>): RocksDBColumnFamilyDescriptor {
-    val descriptors = RocksDBColumnFamilyDescriptor()
-    for (descriptor in columnFamilyDescriptors) {
-        descriptors.addColumnFamilyWithName(descriptor.getName().decodeToString(), descriptor.getOptions().native)
-    }
-    return descriptors
-}

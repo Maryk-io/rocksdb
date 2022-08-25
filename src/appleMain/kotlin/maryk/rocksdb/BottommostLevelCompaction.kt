@@ -1,26 +1,18 @@
 package maryk.rocksdb
 
-import maryk.rocksdb.BottommostLevelCompaction.kForce
-import maryk.rocksdb.BottommostLevelCompaction.kIfHaveCompactionFilter
-import maryk.rocksdb.BottommostLevelCompaction.kSkip
-import rocksdb.RocksDBBottommostLevelCompaction
-import rocksdb.RocksDBBottommostLevelCompaction.RocksDBBottommostLevelCompactionForce
-import rocksdb.RocksDBBottommostLevelCompaction.RocksDBBottommostLevelCompactionIfHaveCompactionFilter
-import rocksdb.RocksDBBottommostLevelCompaction.RocksDBBottommostLevelCompactionSkip
-
 actual enum class BottommostLevelCompaction(
-    internal val value: RocksDBBottommostLevelCompaction
+    internal val value: UByte
 ) {
-    kSkip(RocksDBBottommostLevelCompactionSkip),
-    kIfHaveCompactionFilter(RocksDBBottommostLevelCompactionIfHaveCompactionFilter),
-    kForce(RocksDBBottommostLevelCompactionForce),
+    kSkip(0u),
+    kIfHaveCompactionFilter(1u),
+    kForce(2u),
 }
 
-fun bottommostLevelCompactionFromByte(bottommostLevelCompaction: RocksDBBottommostLevelCompaction): BottommostLevelCompaction? {
+fun bottommostLevelCompactionFromByte(bottommostLevelCompaction: UByte): BottommostLevelCompaction? {
     return when (bottommostLevelCompaction) {
-        RocksDBBottommostLevelCompactionSkip -> kSkip
-        RocksDBBottommostLevelCompactionIfHaveCompactionFilter -> kIfHaveCompactionFilter
-        RocksDBBottommostLevelCompactionForce -> kForce
+        BottommostLevelCompaction.kSkip.value -> BottommostLevelCompaction.kSkip
+        BottommostLevelCompaction.kIfHaveCompactionFilter.value -> BottommostLevelCompaction.kIfHaveCompactionFilter
+        BottommostLevelCompaction.kForce.value -> BottommostLevelCompaction.kForce
         else -> null
     }
 }

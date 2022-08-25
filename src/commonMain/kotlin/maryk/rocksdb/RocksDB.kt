@@ -1,7 +1,5 @@
 package maryk.rocksdb
 
-import maryk.ByteBuffer
-
 expect val defaultColumnFamily: ByteArray
 expect val rocksDBNotFound: Int
 
@@ -1709,14 +1707,6 @@ expect open class RocksDB : RocksObject {
     fun level0StopWriteTrigger(
         columnFamilyHandle: ColumnFamilyHandle
     ): Int
-
-    /**
-     * Get DB name -- the exact same name that was provided as an argument to
-     * as path to [.open].
-     *
-     * @return the DB name
-     */
-    fun getName(): String
 
     /**
      * Get the Env object from the DB

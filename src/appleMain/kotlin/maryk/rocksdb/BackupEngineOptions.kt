@@ -1,21 +1,21 @@
 package maryk.rocksdb
 
-import platform.Foundation.NSFileManager
+import rocksdb.rocksdb_backup_engine_options_create
+import rocksdb.rocksdb_backup_engine_options_destroy
 
 actual class BackupEngineOptions
     actual constructor(private val path: String)
 : RocksObject() {
-    init {
-        val pathToCheck = path.let {
-            if (it.last() != '/') {
-                "$path/"
-            } else path
-        }
-
-        require(NSFileManager.defaultManager.isWritableFileAtPath(pathToCheck)) { "Path $path is not writable" }
-    }
+    val native = rocksdb_backup_engine_options_create(path)
 
     actual fun backupDir(): String {
         return path
+    }
+
+    override fun close() {
+        if (isOwningHandle()) {
+            rocksdb_backup_engine_options_destroy(native)
+            super.close()
+        }
     }
 }

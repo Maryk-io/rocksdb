@@ -1,24 +1,38 @@
 package maryk.rocksdb
 
-import maryk.wrapWithErrorThrower
-import platform.Foundation.NSNumber
-import rocksdb.RocksDBBackupEngine
-import rocksdb.RocksDBBackupInfo
+import cnames.structs.rocksdb_backup_engine_t
+import kotlinx.cinterop.CPointer
+import maryk.toUByte
+import maryk.wrapWithErrorThrower2
+import rocksdb.rocksdb_backup_engine_close
+import rocksdb.rocksdb_backup_engine_create_new_backup
+import rocksdb.rocksdb_backup_engine_create_new_backup_flush
+import rocksdb.rocksdb_backup_engine_get_backup_info
+import rocksdb.rocksdb_backup_engine_info_backup_id
+import rocksdb.rocksdb_backup_engine_info_count
+import rocksdb.rocksdb_backup_engine_info_destroy
+import rocksdb.rocksdb_backup_engine_info_number_files
+import rocksdb.rocksdb_backup_engine_info_size
+import rocksdb.rocksdb_backup_engine_info_timestamp
+import rocksdb.rocksdb_backup_engine_open_opts
+import rocksdb.rocksdb_backup_engine_purge_old_backups
+import rocksdb.rocksdb_backup_engine_restore_db_from_backup
+import rocksdb.rocksdb_backup_engine_restore_db_from_latest_backup
 
 actual class BackupEngine
     internal constructor(
-        internal val native: RocksDBBackupEngine
+        internal val native: CPointer<rocksdb_backup_engine_t>
     )
 : RocksObject(), AutoCloseable {
     actual fun createNewBackup(db: RocksDB) {
-        wrapWithErrorThrower { error ->
-            native.createBackupForDatabase(db.native, error)
+        wrapWithErrorThrower2 { error ->
+            rocksdb_backup_engine_create_new_backup(native, db.native, error)
         }
     }
 
     actual fun createNewBackup(db: RocksDB, flushBeforeBackup: Boolean) {
-        wrapWithErrorThrower { error ->
-            native.createBackupForDatabase(db.native, "", flushBeforeBackup, error)
+        wrapWithErrorThrower2 { error ->
+            rocksdb_backup_engine_create_new_backup_flush(native, db.native, flushBeforeBackup.toUByte(), error)
         }
     }
 
@@ -27,47 +41,44 @@ actual class BackupEngine
         metadata: String,
         flushBeforeBackup: Boolean
     ) {
-        wrapWithErrorThrower { error ->
-            native.createBackupForDatabase(db.native, metadata, flushBeforeBackup, error)
-        }
+        throw NotImplementedError("DO SOMETHING")
     }
 
     actual fun getBackupInfo(): List<BackupInfo> {
-        return native.backupInfo().map { info ->
-            val castedInfo = (info as RocksDBBackupInfo)
+        return buildList {
+            val info = rocksdb_backup_engine_get_backup_info(native)
+            val size = rocksdb_backup_engine_info_count(info)
 
-            BackupInfo(
-                backupId = castedInfo.backupId.toInt(),
-                timestamp = castedInfo.timestamp,
-                size = castedInfo.size.toLong(),
-                numberFiles = castedInfo.numberFiles.toInt(),
-                appMetadata = castedInfo.appMetadata
-            )
+            for (index in 0 until size) {
+                this += BackupInfo(
+                    backupId = rocksdb_backup_engine_info_backup_id(info, 0).toInt(),
+                    timestamp = rocksdb_backup_engine_info_timestamp(info, 0),
+                    size = rocksdb_backup_engine_info_size(info, 0).toLong(),
+                    numberFiles = rocksdb_backup_engine_info_number_files(info, 0).toInt(),
+                    appMetadata = null, // TODO META DATA
+                )
+            }
+
+            rocksdb_backup_engine_info_destroy(info)
         }
     }
 
     actual fun getCorruptedBackups(): IntArray {
-        @Suppress("UNCHECKED_CAST")
-        val corruptedBackups = native.getCorruptedBackups() as List<NSNumber>
-        return corruptedBackups.map { it.intValue }.toIntArray()
+        throw NotImplementedError("DO SOMETHING")
     }
 
     actual fun garbageCollect() {
-        wrapWithErrorThrower { error ->
-            native.garbageCollect(error)
-        }
+        throw NotImplementedError("DO SOMETHING")
     }
 
     actual fun purgeOldBackups(numBackupsToKeep: Int) {
-        wrapWithErrorThrower { error ->
-            native.purgeOldBackupsKeepingLast(numBackupsToKeep.toUInt(), error)
+        wrapWithErrorThrower2 { error ->
+            rocksdb_backup_engine_purge_old_backups(native, numBackupsToKeep.toUInt(), error)
         }
     }
 
     actual fun deleteBackup(backupId: Int) {
-        wrapWithErrorThrower { error ->
-            native.deleteBackupWithId(backupId.toUInt(), error)
-        }
+        throw NotImplementedError("DO SOMETHING")
     }
 
     actual fun restoreDbFromBackup(
@@ -76,13 +87,14 @@ actual class BackupEngine
         walDir: String,
         restoreOptions: RestoreOptions
     ) {
-        wrapWithErrorThrower { error ->
-            native.restoreDbFromBackup(
-                backupId,
+        wrapWithErrorThrower2 { error ->
+            rocksdb_backup_engine_restore_db_from_backup(
+                native,
                 dbDir,
                 walDir,
-                restoreOptions.keepLogFiles,
-                error
+                restoreOptions.native,
+                backupId.toUInt(),
+                error,
             )
         }
     }
@@ -92,8 +104,21 @@ actual class BackupEngine
         walDir: String,
         restoreOptions: RestoreOptions
     ) {
-        wrapWithErrorThrower { error ->
-            native.restoreDbFromLatestBackup(dbDir, walDir, restoreOptions.keepLogFiles, error)
+        wrapWithErrorThrower2 { error ->
+            rocksdb_backup_engine_restore_db_from_latest_backup(
+                native,
+                dbDir,
+                walDir,
+                restoreOptions.native,
+                error,
+            )
+        }
+    }
+
+    override fun close() {
+        if (isOwningHandle()) {
+            rocksdb_backup_engine_close(native)
+            super.close()
         }
     }
 }
@@ -101,8 +126,8 @@ actual class BackupEngine
 actual fun openBackupEngine(
     env: Env,
     options: BackupEngineOptions
-) = Unit.wrapWithErrorThrower { error ->
+) = Unit.wrapWithErrorThrower2 { error ->
     BackupEngine(
-        RocksDBBackupEngine(options.backupDir(), env.native, error)
+        rocksdb_backup_engine_open_opts(options.native, env.native, error)!!
     )
 }

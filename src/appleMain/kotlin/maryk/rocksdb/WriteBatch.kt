@@ -1,44 +1,48 @@
 package maryk.rocksdb
 
-import maryk.toByteArray
-import rocksdb.RocksDBWriteBatch
+import cnames.structs.rocksdb_writebatch_t
+import kotlinx.cinterop.CPointer
+import rocksdb.rocksdb_writebatch_create
 
-actual class WriteBatch(internal val native: RocksDBWriteBatch) : AbstractWriteBatch(native) {
-    actual constructor() : this(RocksDBWriteBatch())
+actual class WriteBatch(
+    internal val native: CPointer<rocksdb_writebatch_t>
+) : AbstractWriteBatch(native) {
+    actual constructor() : this(rocksdb_writebatch_create()!!)
 
-    actual fun getDataSize() = native.dataSize().toLong()
+    actual fun getDataSize(): Long = throw NotImplementedError("DO SOMETHING")
 
     actual fun getWalTerminationPoint(): WriteBatchSavePoint {
-        val terminationPoint = native.getWalTerminationPoint()
-        return WriteBatchSavePoint(
-            terminationPoint.size.toLong(),
-            terminationPoint.count.toLong(),
-            terminationPoint.contentFlags.toLong()
-        )
+        throw NotImplementedError("DO SOMETHING")
+//        val terminationPoint = native.getWalTerminationPoint()
+//        return WriteBatchSavePoint(
+//            terminationPoint.size.toLong(),
+//            terminationPoint.count.toLong(),
+//            terminationPoint.contentFlags.toLong()
+//        )
     }
 
-    actual fun data() = native.data().toByteArray()
+    actual fun data(): ByteArray = throw NotImplementedError("DO SOMETHING")
 
-    actual fun hasPut() = native.hasPut()
+    actual fun hasPut(): Boolean = throw NotImplementedError("DO SOMETHING")
 
-    actual fun hasDelete() = native.hasDelete()
+    actual fun hasDelete(): Boolean = throw NotImplementedError("DO SOMETHING")
 
-    actual fun hasSingleDelete() = native.hasSingleDelete()
+    actual fun hasSingleDelete(): Boolean = throw NotImplementedError("DO SOMETHING")
 
-    actual fun hasDeleteRange() = native.hasDeleteRange()
+    actual fun hasDeleteRange(): Boolean = throw NotImplementedError("DO SOMETHING")
 
-    actual fun hasMerge() = native.hasMerge()
+    actual fun hasMerge(): Boolean = throw NotImplementedError("DO SOMETHING")
 
-    actual fun hasBeginPrepare() = native.hasBeginPrepare()
+    actual fun hasBeginPrepare(): Boolean = throw NotImplementedError("DO SOMETHING")
 
-    actual fun hasEndPrepare() = native.hasEndPrepare()
+    actual fun hasEndPrepare(): Boolean = throw NotImplementedError("DO SOMETHING")
 
-    actual fun hasCommit() = native.hasCommit()
+    actual fun hasCommit(): Boolean = throw NotImplementedError("DO SOMETHING")
 
-    actual fun hasRollback() = native.hasRollback()
+    actual fun hasRollback(): Boolean = throw NotImplementedError("DO SOMETHING")
 
     actual fun markWalTerminationPoint() {
-        native.markWalTerminationPoint()
+        throw NotImplementedError("DO SOMETHING")
     }
 
     override fun getWriteBatch(): WriteBatch {

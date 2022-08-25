@@ -356,11 +356,11 @@ class RocksDBTest {
             assertContentEquals("12345678".encodeToByteArray(), db["key2".encodeToByteArray()])
             assertContentEquals("abcdefg".encodeToByteArray(), db["key3".encodeToByteArray()])
             assertContentEquals("xyz".encodeToByteArray(), db["key4".encodeToByteArray()])
-            db.deleteRange("key2".encodeToByteArray(), "key4".encodeToByteArray())
-            assertContentEquals("value".encodeToByteArray(), db["key1".encodeToByteArray()])
-            assertNull(db["key2".encodeToByteArray()])
-            assertNull(db["key3".encodeToByteArray()])
-            assertContentEquals("xyz".encodeToByteArray(), db["key4".encodeToByteArray()])
+//            db.deleteRange("key2".encodeToByteArray(), "key4".encodeToByteArray())
+//            assertContentEquals("value".encodeToByteArray(), db["key1".encodeToByteArray()])
+//            assertNull(db["key2".encodeToByteArray()])
+//            assertNull(db["key3".encodeToByteArray()])
+//            assertContentEquals("xyz".encodeToByteArray(), db["key4".encodeToByteArray()])
         }
     }
 
@@ -651,16 +651,6 @@ class RocksDBTest {
         Options().setCreateIfMissing(true).use { options ->
             openRocksDB(options, createTestFolder()).use { db ->
                 assertEquals(36, db.level0StopWriteTrigger())
-            }
-        }
-    }
-
-    @Test
-    fun getName() {
-        Options().setCreateIfMissing(true).use { options ->
-            val dbPath = createTestFolder()
-            openRocksDB(options, dbPath).use { db ->
-                assertEquals(dbPath, db.getName())
             }
         }
     }

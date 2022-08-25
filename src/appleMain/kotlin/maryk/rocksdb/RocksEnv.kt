@@ -1,6 +1,7 @@
 package maryk.rocksdb
 
-import rocksdb.RocksDBEnv
+import cnames.structs.rocksdb_env_t
+import kotlinx.cinterop.CPointer
 
 /**
  * A RocksEnv is an interface used by the rocksdb implementation to access
@@ -19,9 +20,7 @@ class RocksEnv
      * the ownership of the input handle.  As a result, calling
      * `dispose()` of the created RocksEnv will be no-op.
      */
-    internal constructor(native: RocksDBEnv) : Env(native) {
-
-    internal constructor() : this(RocksDBEnv())
+    internal constructor(native: CPointer<rocksdb_env_t>?) : Env(native) {
 
     override fun equals(other: Any?): Boolean {
         if (other !is RocksEnv) return false

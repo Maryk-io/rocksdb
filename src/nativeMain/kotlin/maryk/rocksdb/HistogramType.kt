@@ -1,9 +1,8 @@
 package maryk.rocksdb
 
-import rocksdb.RocksDBHistogram
 
 actual enum class HistogramType(
-    internal val value: RocksDBHistogram
+    internal val value: UByte
 ) {
     DB_GET(0x0u),
     DB_WRITE(0x1u),

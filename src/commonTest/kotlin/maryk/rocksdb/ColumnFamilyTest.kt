@@ -37,7 +37,7 @@ class ColumnFamilyTest {
     }
 
     @Test
-    fun listColumnFamilies() {
+    fun elistColumnFamilies() {
         val testFolder = createTestFolder()
         Options().setCreateIfMissing(true).use { options ->
             openRocksDB(
@@ -604,7 +604,7 @@ class ColumnFamilyTest {
     }
 
     @Test
-    fun testByteCreateFolumnFamily() {
+    fun testByteCreateColumnFamily() {
         val testFolder = createTestFolder()
         Options().setCreateIfMissing(true).use { options ->
             openRocksDB(

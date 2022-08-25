@@ -34,21 +34,29 @@ actual class Statistics internal constructor(
     }
 
     actual fun setStatsLevel(statsLevel: StatsLevel) {
-        native.statsLevel = statsLevel.value
+        throw NotImplementedError("DO SOMETHING")
+//        native.statsLevel = statsLevel.value
     }
 
-    actual fun getTickerCount(tickerType: TickerType) =
-        native.countForTicker(tickerType.value).toLong()
+    actual fun getTickerCount(tickerType: TickerType): Long {
+        throw NotImplementedError("DO SOMETHING")
+//        return native.countForTicker(tickerType.value).toLong()
+    }
 
-    actual fun getAndResetTickerCount(tickerType: TickerType) =
-        native.countForTickerAndReset(tickerType.value).toLong()
+    actual fun getAndResetTickerCount(tickerType: TickerType): Long {
+        throw NotImplementedError("DO SOMETHING")
+//        return native.countForTickerAndReset(tickerType.value).toLong()
+    }
 
-    actual fun getHistogramData(histogramType: HistogramType) = HistogramData(
-        native.histogramDataForType(histogramType.value)
-    )
+    actual fun getHistogramData(histogramType: HistogramType) :HistogramData {
+        throw NotImplementedError("DO SOMETHING")
+//        native.histogramDataForType(histogramType.value)
+    }
 
-    actual fun getHistogramString(histogramType: HistogramType) =
-        native.histogramStringForType(histogramType.value)
+    actual fun getHistogramString(histogramType: HistogramType): String {
+        throw NotImplementedError("DO SOMETHING")
+//        native.histogramStringForType(histogramType.value)
+    }
 
     actual fun reset() {
         wrapWithErrorThrower { error ->

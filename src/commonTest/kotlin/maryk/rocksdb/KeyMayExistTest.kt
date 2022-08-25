@@ -80,7 +80,7 @@ class KeyMayExistTest {
                     assertEquals("value", holder.getValue()?.decodeToString())
 
                     // Test slice sky with column family
-                    holder = Holder<ByteArray>()
+                    holder = Holder()
                     exists = db.keyMayExist(
                         columnFamilyHandleList[0], sliceKey, offset, len,
                         holder
