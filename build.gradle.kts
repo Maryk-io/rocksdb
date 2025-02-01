@@ -188,13 +188,13 @@ kotlin {
         }
         setupTarget("macos_arm64", buildTask, "-arch arm64 -target arm64-apple-macos11.0", "-DPLATFORM=MAC")
     }
-//    linuxX64 {
-//        val buildTask = tasks.create("buildLib-"+this.name, Exec::class) {
-//            workingDir = projectDir
-//            commandLine("./buildRocksdbLinux.sh", "--arch=x86-64")
-//        }
-//        setupTarget("linux_x86_64", buildTask, "-march=x86-64")
-//    }
+    linuxX64 {
+        val buildTask = tasks.create("buildLib-"+this.name, Exec::class) {
+            workingDir = projectDir
+            commandLine("./buildRocksdbLinux.sh", "--arch=x86-64")
+        }
+        setupTarget("linux_x86_64", buildTask, "-march=x86-64")
+    }
 //    linuxArm64 {
 //        val buildTask = tasks.create("buildLib-"+this.name, Exec::class) {
 //            workingDir = projectDir

@@ -32,29 +32,6 @@ package maryk.rocksdb
  */
 expect class TransactionDB : RocksDB {
     /**
-     * Closes the `TransactionDB` instance, releasing all associated resources.
-     *
-     * This method is similar to [RocksDB.close] but throws an exception if any error occurs
-     * during the closing process.
-     *
-     * **Note:** This method does not perform an `fsync` on WAL files. If syncing is required,
-     * ensure to call [syncWal] or use [write] with appropriate [WriteOptions] before closing.
-     *
-     * @throws RocksDBException If an error occurs while closing the database.
-     */
-    override fun closeE()
-
-    /**
-     * Closes the `TransactionDB` instance, releasing all associated resources.
-     *
-     * This method is similar to [closeE] but silently ignores any errors that occur during the closing process.
-     *
-     * **Note:** This method does not perform an `fsync` on WAL files. If syncing is required,
-     * ensure to call [syncWal] or use [write] with appropriate [WriteOptions] before closing.
-     */
-    override fun close()
-
-    /**
      * Starts a new Transaction.
      *
      * Caller is responsible for calling [Transaction.close] on the returned

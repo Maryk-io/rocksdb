@@ -141,8 +141,8 @@ actual class ColumnFamilyOptions private constructor(
     }
 
     actual fun setMergeOperator(mergeOperator: MergeOperator): ColumnFamilyOptions {
-        //rocksdb_options_set_merge_operator(native, mergeOperator.native)
-        TODO()
+        rocksdb.rocksdb_options_set_merge_operator(native, mergeOperator.native)
+        return this
     }
 
     actual fun setCompactionFilter(compactionFilter: AbstractCompactionFilter<out AbstractSlice<*>>): ColumnFamilyOptions {

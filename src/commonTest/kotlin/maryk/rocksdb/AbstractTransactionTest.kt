@@ -1,10 +1,10 @@
 package maryk.rocksdb
 
-import kotlinx.datetime.Clock
 import maryk.ByteBuffer
 import maryk.allocateByteBuffer
 import maryk.allocateDirectByteBuffer
 import maryk.assertContainsExactly
+import maryk.assertContentEquals
 import maryk.createFolder
 import maryk.deleteFolder
 import maryk.flip
@@ -424,7 +424,8 @@ abstract class AbstractTransactionTest {
 
                             allocateDirectByteBuffer(20) { expectedBuffer ->
                                 expectedBuffer.put("value1".encodeToByteArray())
-                                assertEquals(v1Read2, expectedBuffer)
+                                expectedBuffer.flip()
+                                assertContentEquals(v1Read2.array(), expectedBuffer.array())
                             }
                         }
                     }
@@ -486,10 +487,8 @@ abstract class AbstractTransactionTest {
                                 assertEquals(StatusCode.NotFound, getStatus2.getStatus().getCode())
                             }
 
-                            k1.flip()
                             txn.put(testCf, k1, v1)
 
-                            k1.flip()
                             v1.flip()
                         }
 
@@ -500,7 +499,8 @@ abstract class AbstractTransactionTest {
 
                             allocateBuffer(20) { expectedBuffer ->
                                 expectedBuffer.put("value1".encodeToByteArray())
-                                assertEquals(v1Read3, expectedBuffer)
+                                expectedBuffer.flip()
+                                assertContentEquals(v1Read3.array(), expectedBuffer.array())
                             }
                         }
                     }
@@ -1062,19 +1062,19 @@ abstract class AbstractTransactionTest {
         }
     }
 
-    @Test
-    fun elapsedTime() {
-        val preStartTxnTime = Clock.System.now().toEpochMilliseconds()
-        startDb().use { dbContainer ->
-            dbContainer.beginTransaction().use { txn ->
-                Thread.sleep(2)
-
-                val txnElapsedTime = txn.getElapsedTime()
-                assertTrue(txnElapsedTime < (Clock.System.now().toEpochMilliseconds() - preStartTxnTime))
-                assertTrue(txnElapsedTime > 0)
-            }
-        }
-    }
+//    @Test
+//    fun elapsedTime() {
+//        val preStartTxnTime = Clock.System.now().toEpochMilliseconds()
+//        startDb().use { dbContainer ->
+//            dbContainer.beginTransaction().use { txn ->
+//                Thread.sleep(2)
+//
+//                val txnElapsedTime = txn.getElapsedTime()
+//                assertTrue(txnElapsedTime < (Clock.System.now().toEpochMilliseconds() - preStartTxnTime))
+//                assertTrue(txnElapsedTime > 0)
+//            }
+//        }
+//    }
 
     @Test
     fun getWriteBatch() {

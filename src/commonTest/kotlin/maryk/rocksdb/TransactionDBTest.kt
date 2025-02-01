@@ -24,7 +24,7 @@ class TransactionDBTest {
         val tempFolder = createTestFolder()
         DBOptions().setCreateIfMissing(true).setCreateMissingColumnFamilies(true).use { dbOptions ->
             ColumnFamilyOptions().use { cfOpts ->
-                val columnFamilyDescriptors = listOf(
+                val columnFamilyDescriptors = mutableListOf(
                     ColumnFamilyDescriptor(defaultColumnFamily),
                     ColumnFamilyDescriptor("myCf".encodeToByteArray(), cfOpts)
                 )
@@ -40,9 +40,10 @@ class TransactionDBTest {
                         columnFamilyHandles
                     ).use { tdb ->
                         assertNotNull(tdb, "TransactionDB with column families should be opened successfully")
+
+                        // Ensure all handles are closed
+                        columnFamilyHandles.forEach { it.close() }
                     }
-                    // Ensure all handles are closed
-                    columnFamilyHandles.forEach { it.close() }
                 }
             }
         }
@@ -53,7 +54,7 @@ class TransactionDBTest {
         val tempFolder = createTestFolder()
         DBOptions().setCreateIfMissing(true).setCreateMissingColumnFamilies(true).use { dbOptions ->
             ColumnFamilyOptions().use { cfOpts ->
-                val columnFamilyDescriptors = listOf(
+                val columnFamilyDescriptors = mutableListOf(
                     ColumnFamilyDescriptor("myCf".encodeToByteArray(), cfOpts)
                 )
 

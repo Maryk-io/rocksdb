@@ -6,7 +6,7 @@ actual fun openTransactionDB(
     transactionDbOptions: TransactionDBOptions,
     path: String,
     columnFamilyDescriptors: List<ColumnFamilyDescriptor>,
-    columnFamilyHandles: List<ColumnFamilyHandle>
+    columnFamilyHandles: MutableList<ColumnFamilyHandle>
 ): TransactionDB =
     org.rocksdb.TransactionDB.open(dbOptions, transactionDbOptions, path, columnFamilyDescriptors, columnFamilyHandles)
 

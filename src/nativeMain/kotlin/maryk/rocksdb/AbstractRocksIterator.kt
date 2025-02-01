@@ -1,7 +1,24 @@
 package maryk.rocksdb
 
+import cnames.structs.rocksdb_iterator_t
+import kotlinx.cinterop.CPointer
+import kotlinx.cinterop.toCValues
+import maryk.toBoolean
+import maryk.wrapWithErrorThrower
+import rocksdb.rocksdb_iter_destroy
+import rocksdb.rocksdb_iter_get_error
+import rocksdb.rocksdb_iter_next
+import rocksdb.rocksdb_iter_prev
+import rocksdb.rocksdb_iter_seek
+import rocksdb.rocksdb_iter_seek_for_prev
+import rocksdb.rocksdb_iter_seek_to_first
+import rocksdb.rocksdb_iter_seek_to_last
+import rocksdb.rocksdb_iter_valid
+
 actual abstract class AbstractRocksIterator<P : RocksObject>
-    protected constructor()
+    protected constructor(
+        internal val native: CPointer<rocksdb_iterator_t>
+    )
 : RocksObject(), RocksIteratorInterface {
     /**
      * An iterator is either positioned at an entry, or
@@ -9,16 +26,15 @@ actual abstract class AbstractRocksIterator<P : RocksObject>
      *
      * @return true if iterator is valid.
      */
-    actual override fun isValid(): Boolean {
-        throw NotImplementedError()
-    }
+    actual override fun isValid(): Boolean =
+        rocksdb_iter_valid(native).toBoolean()
 
     /**
      * Position at the first entry in the source.  The iterator is Valid()
      * after this call if the source is not empty.
      */
     actual override fun seekToFirst() {
-        throw NotImplementedError()
+        rocksdb_iter_seek_to_first(native)
     }
 
     /**
@@ -26,7 +42,7 @@ actual abstract class AbstractRocksIterator<P : RocksObject>
      * valid after this call if the source is not empty.
      */
     actual override fun seekToLast() {
-        throw NotImplementedError()
+        rocksdb_iter_seek_to_last(native)
     }
 
     /**
@@ -40,7 +56,7 @@ actual abstract class AbstractRocksIterator<P : RocksObject>
      * key prefix to seek for.
      */
     actual override fun seek(target: ByteArray) {
-        throw NotImplementedError()
+        rocksdb_iter_seek(native, target.toCValues(), target.size.toULong())
     }
 
     /**
@@ -54,7 +70,7 @@ actual abstract class AbstractRocksIterator<P : RocksObject>
      * key prefix to seek for.
      */
     actual override fun seekForPrev(target: ByteArray) {
-        throw NotImplementedError()
+        rocksdb_iter_seek_for_prev(native, target.toCValues(), target.size.toULong())
     }
 
     /**
@@ -64,7 +80,7 @@ actual abstract class AbstractRocksIterator<P : RocksObject>
      * REQUIRES: [.isValid]
      */
     actual override fun next() {
-        throw NotImplementedError()
+        rocksdb_iter_next(native)
     }
 
     /**
@@ -74,7 +90,7 @@ actual abstract class AbstractRocksIterator<P : RocksObject>
      * REQUIRES: [.isValid]
      */
     actual override fun prev() {
-        throw NotImplementedError()
+        rocksdb_iter_prev(native)
     }
 
     /**
@@ -86,6 +102,15 @@ actual abstract class AbstractRocksIterator<P : RocksObject>
      * native library.
      */
     actual override fun status() {
-        throw NotImplementedError()
+        wrapWithErrorThrower { error ->
+            rocksdb_iter_get_error(native, error)
+        }
+    }
+
+    override fun close() {
+        if (isOwningHandle()) {
+            rocksdb_iter_destroy(native)
+            super.close()
+        }
     }
 }

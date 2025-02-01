@@ -394,7 +394,7 @@ expect class Transaction : RocksObject {
         readOptions: ReadOptions,
         columnFamilyHandles: List<ColumnFamilyHandle>,
         keys: List<ByteArray>
-    ): List<ByteArray>
+    ): List<ByteArray?>
 
     /**
      * This function is similar to
@@ -423,7 +423,7 @@ expect class Transaction : RocksObject {
     fun multiGetAsList(
         readOptions: ReadOptions,
         keys: List<ByteArray>
-    ): List<ByteArray>
+    ): List<ByteArray?>
 
     /**
      * Reads this key and ensures that this transaction will only
@@ -814,7 +814,6 @@ expect class Transaction : RocksObject {
         exclusive: Boolean
     ): GetStatus
 
-
     /**
      * Reads this key and ensures that this transaction will only
      * be able to be committed if this key is not written outside this
@@ -884,7 +883,7 @@ expect class Transaction : RocksObject {
         readOptions: ReadOptions,
         columnFamilyHandles: List<ColumnFamilyHandle>,
         keys: List<ByteArray>
-    ): List<ByteArray>
+    ): List<ByteArray?>
 
     /**
      * A multi-key version of
@@ -901,7 +900,7 @@ expect class Transaction : RocksObject {
     fun multiGetForUpdateAsList(
         readOptions: ReadOptions,
         keys: List<ByteArray>
-    ): List<ByteArray>
+    ): List<ByteArray?>
 
     /**
      * Returns an iterator that will iterate over all keys in the default

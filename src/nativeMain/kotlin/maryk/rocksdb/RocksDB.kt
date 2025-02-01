@@ -14,7 +14,6 @@ import kotlinx.cinterop.alloc
 import kotlinx.cinterop.allocArray
 import kotlinx.cinterop.get
 import kotlinx.cinterop.memScoped
-import kotlinx.cinterop.nativeHeap.free
 import kotlinx.cinterop.set
 import kotlinx.cinterop.toCValues
 import kotlinx.cinterop.toKString
@@ -107,10 +106,7 @@ internal constructor(
     }
 
     actual open fun closeE() {
-        if (isOwningHandle()) {
-            rocksdb_close(native)
-            super.close()
-        }
+        this.close()
     }
 
     actual fun createColumnFamily(columnFamilyDescriptor: ColumnFamilyDescriptor): ColumnFamilyHandle =
