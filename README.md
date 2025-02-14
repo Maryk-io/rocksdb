@@ -46,7 +46,7 @@ You can refer to the [API reference](src/commonMain/kotlin/maryk/rocksdb) or the
 The dependency is published in Maven Central, so you can easily add it to your project:
 
 ```kotlin
-implementation("io.maryk.rocksdb:rocksdb-multiplatform:9.6.2")
+implementation("io.maryk.rocksdb:rocksdb-multiplatform:9.10.0")
 ```
 
 ## Usage Example

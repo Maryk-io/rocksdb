@@ -16,14 +16,14 @@ plugins {
     id("maven-publish")
     id("signing")
     id("com.android.library") version "8.7.0"
-    kotlin("multiplatform") version "2.1.0"
+    kotlin("multiplatform") version "2.1.10"
 }
 
 group = "io.maryk.rocksdb"
-version = "9.6.2"
+version = "9.10.0"
 
-val rocksDBJVMVersion = "9.6.1"
-val rocksDBAndroidVersion = "9.6.1"
+val rocksDBJVMVersion = "9.10.0"
+val rocksDBAndroidVersion = "9.10.0"
 
 val kotlinXDateTimeVersion = "0.6.1"
 
